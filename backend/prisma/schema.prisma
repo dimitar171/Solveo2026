@@ -1,0 +1,96 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Keyword {
+  id                    Int      @id @default(autoincrement())
+  keyword               String
+  category              String
+  traffic2024           Int
+  traffic2025           Int
+  trafficChangePct      Float
+  position2024          Int
+  position2025          Int
+  positionChange        Int
+  signups2024           Int
+  signups2025           Int
+  conversionRate2024    Float
+  conversionRate2025    Float
+  aiOverviewTriggered   Boolean
+  difficultyScore       Int
+  cpcUsd                Float
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model RegionalPerformance {
+  id                Int      @id @default(autoincrement())
+  region            String
+  country           String
+  city              String
+  month             String
+  organicTraffic    Int
+  paidTraffic       Int
+  totalTraffic      Int
+  trialsStarted     Int
+  paidConversions   Int
+  trialToPaidRate   Float
+  mrrUsd            Float
+  cacUsd            Float
+  ltvUsd            Float
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  @@unique([region, country, city, month])
+}
+
+model MonthlyMetric {
+  id                  Int      @id @default(autoincrement())
+  month               String   @unique
+  websiteTraffic      Int
+  uniqueSignups       Int
+  trialsStarted       Int
+  paidConversions     Int
+  mrrUsd              Float
+  churnRate           Float
+  signupToTrialRate   Float
+  trialToPaidRate     Float
+  netNewMrr           Float
+  expansionMrr        Float
+  churnedMrr          Float
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model ChannelPerformance {
+  id                    Int      @id @default(autoincrement())
+  month                 String
+  channel               String
+  sessions              Int
+  signups               Int
+  conversionRate        Float
+  avgSessionDurationSec Int
+  bounceRate            Float
+  pagesPerSession       Float
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  
+  @@unique([month, channel])
+}
+
+model DataImport {
+  id          Int      @id @default(autoincrement())
+  filename    String
+  status      String   // 'success', 'failed', 'processing'
+  recordCount Int?
+  errorMsg    String?
+  importedAt  DateTime @default(now())
+}
