@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { AlertTriangle, AlertCircle, Info } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { API_BASE_URL } from '../config';
+import { api } from '../lib/api';
 
 interface Alert {
   type: string;
@@ -87,10 +87,8 @@ function Alerts() {
   const { data: alerts = [], isLoading } = useQuery<Alert[]>({
     queryKey: ['alerts'],
     queryFn: async () => {
-      const response = await fetch(`${API_BASE_URL}/alerts`);
-      if (!response.ok) throw new Error('Failed to fetch alerts');
-      const result: any = await response.json();
-      return result.alerts || [];
+      const response = await api.get<{ alerts: Alert[] }>('/alerts');
+      return response.alerts || [];
     },
     refetchInterval: 60000, // Refetch every minute
   });

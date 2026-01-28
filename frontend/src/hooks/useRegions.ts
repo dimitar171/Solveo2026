@@ -1,83 +1,66 @@
 import { useQuery } from '@tanstack/react-query';
-import { API_BASE_URL } from '../config';
 import type {
   RegionalBreakdown,
   CountryBreakdown,
   CityBreakdown,
 } from '../types';
+import { api } from '../lib/api';
 
+// Fetch list of regions
 export function useRegionsList() {
   return useQuery<string[]>({
     queryKey: ['regions', 'list'],
-    queryFn: async () => {
-      const res = await fetch(`${API_BASE_URL}/regions/list`);
-      if (!res.ok) throw new Error('Failed to fetch regions list');
-      const json: any = await res.json();
-      return json.data ?? [];
-    },
-    staleTime: 10 * 60 * 1000,
+    queryFn: () => api.get<string[]>('/regions/list'),
+    staleTime: 10 * 60 * 1000, // 10 minutes
   });
 }
 
+// Fetch list of countries (optionally filtered by region)
 export function useCountriesList(region?: string) {
   return useQuery<string[]>({
-    queryKey: ['regions', 'countries-list', region ?? 'all'],
-    queryFn: async () => {
-      const params = region ? `?region=${encodeURIComponent(region)}` : '';
-      const res = await fetch(`${API_BASE_URL}/regions/countries-list${params}`);
-      if (!res.ok) throw new Error('Failed to fetch countries list');
-      const json: any = await res.json();
-      return json.data ?? [];
+    queryKey: ['regions', 'countries-list', region],
+    queryFn: () => {
+      const endpoint = region 
+        ? `/regions/countries-list?region=${encodeURIComponent(region)}`
+        : '/regions/countries-list';
+      return api.get<string[]>(endpoint);
     },
-    enabled: true,
-    staleTime: 10 * 60 * 1000,
+    staleTime: 10 * 60 * 1000, // 10 minutes
   });
 }
 
+// Fetch regional breakdown data
 export function useRegionalBreakdown() {
   return useQuery<RegionalBreakdown[]>({
     queryKey: ['regions', 'breakdown'],
-    queryFn: async () => {
-      const res = await fetch(`${API_BASE_URL}/regions/breakdown`);
-      if (!res.ok) throw new Error('Failed to fetch regional breakdown');
-      const json: any = await res.json();
-      return json.data ?? [];
-    },
-    staleTime: 5 * 60 * 1000,
+    queryFn: () => api.get<RegionalBreakdown[]>('/regions/breakdown'),
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 }
 
-export function useCountryBreakdown(region: string | undefined) {
+// Fetch country breakdown data
+export function useCountryBreakdown(region?: string) {
   return useQuery<CountryBreakdown[]>({
-    queryKey: ['regions', 'countries-breakdown', region ?? 'none'],
-    queryFn: async () => {
-      if (!region) return [];
-      const res = await fetch(
-        `${API_BASE_URL}/regions/countries?region=${encodeURIComponent(region)}`
-      );
-      if (!res.ok) throw new Error('Failed to fetch country breakdown');
-      const json: any = await res.json();
-      return json.data ?? [];
+    queryKey: ['regions', 'country-breakdown', region],
+    queryFn: () => {
+      if (!region) return Promise.resolve([]);
+      return api.get<CountryBreakdown[]>(`/regions/countries?region=${encodeURIComponent(region)}`);
     },
     enabled: !!region,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 }
 
-export function useCityBreakdown(country: string | undefined) {
+// Fetch city breakdown data
+export function useCityBreakdown(country?: string) {
   return useQuery<CityBreakdown[]>({
-    queryKey: ['regions', 'cities-breakdown', country ?? 'none'],
-    queryFn: async () => {
-      if (!country) return [];
-      const res = await fetch(
-        `${API_BASE_URL}/regions/cities?country=${encodeURIComponent(country)}`
-      );
-      if (!res.ok) throw new Error('Failed to fetch city breakdown');
-      const json: any = await res.json();
-      return json.data ?? [];
+    queryKey: ['regions', 'city-breakdown', country],
+    queryFn: () => {
+      if (!country) return Promise.resolve([]);
+      return api.get<CityBreakdown[]>(`/regions/cities?country=${encodeURIComponent(country)}`);
     },
     enabled: !!country,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 }
 

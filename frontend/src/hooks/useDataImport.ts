@@ -1,16 +1,14 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { DataImport, ImportResult, ApiResponse } from '../types';
-import { API_BASE_URL } from '../config';
+import { api } from '../lib/api';
 
 // Fetch import history
 export function useImportHistory() {
   return useQuery<DataImport[]>({
     queryKey: ['importHistory'],
     queryFn: async () => {
-      const response = await fetch(`${API_BASE_URL}/data/import-history`);
-      if (!response.ok) throw new Error('Failed to fetch import history');
-      const data: any = await response.json();
-      return data.history || [];
+      const response = await api.get<{ history: DataImport[] }>('/data/import-history');
+      return response.history || [];
     },
     refetchInterval: 30000, // Refetch every 30 seconds
   });
@@ -24,14 +22,7 @@ export function useUploadFile() {
     mutationFn: async (file: File) => {
       const formData = new FormData();
       formData.append('file', file);
-
-      const response = await fetch(`${API_BASE_URL}/data/import`, {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) throw new Error('Upload failed');
-      return response.json();
+      return api.postFormData<ImportResult>('/data/import', formData);
     },
     onSuccess: () => {
       // Invalidate and refetch import history
@@ -45,14 +36,7 @@ export function useTriggerImport() {
   const queryClient = useQueryClient();
 
   return useMutation<ImportResult, Error>({
-    mutationFn: async () => {
-      const response = await fetch(`${API_BASE_URL}/scheduler/trigger`, {
-        method: 'POST',
-      });
-
-      if (!response.ok) throw new Error('Import failed');
-      return response.json();
-    },
+    mutationFn: () => api.post<ImportResult>('/scheduler/trigger'),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['importHistory'] });
     },

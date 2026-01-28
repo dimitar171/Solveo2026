@@ -1,17 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
 import type { ExecutiveSummary, TrendData, FunnelData } from '../types';
-import { API_BASE_URL } from '../config';
+import { api } from '../lib/api';
 
 // Fetch executive summary
 export function useExecutiveSummary() {
   return useQuery<ExecutiveSummary>({
     queryKey: ['executiveSummary'],
-    queryFn: async () => {
-      const response = await fetch(`${API_BASE_URL}/metrics/summary`);
-      if (!response.ok) throw new Error('Failed to fetch summary');
-      const result: any = await response.json();
-      return result.data;
-    },
+    queryFn: () => api.get<ExecutiveSummary>('/metrics/summary'),
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 }
@@ -20,12 +15,7 @@ export function useExecutiveSummary() {
 export function useTrends(metric: string = 'mrr', period: number = 12) {
   return useQuery<TrendData[]>({
     queryKey: ['trends', metric, period],
-    queryFn: async () => {
-      const response = await fetch(`${API_BASE_URL}/metrics/trends?metric=${metric}&period=${period}`);
-      if (!response.ok) throw new Error('Failed to fetch trends');
-      const result: any = await response.json();
-      return result.data;
-    },
+    queryFn: () => api.get<TrendData[]>(`/metrics/trends?metric=${metric}&period=${period}`),
     staleTime: 5 * 60 * 1000,
   });
 }
@@ -34,15 +24,9 @@ export function useTrends(metric: string = 'mrr', period: number = 12) {
 export function useFunnel(month?: string) {
   return useQuery<FunnelData>({
     queryKey: ['funnel', month],
-    queryFn: async () => {
-      const url = month 
-        ? `${API_BASE_URL}/metrics/funnel?month=${month}`
-        : `${API_BASE_URL}/metrics/funnel`;
-      
-      const response = await fetch(url);
-      if (!response.ok) throw new Error('Failed to fetch funnel data');
-      const result: any = await response.json();
-      return result.data;
+    queryFn: () => {
+      const endpoint = month ? `/metrics/funnel?month=${month}` : '/metrics/funnel';
+      return api.get<FunnelData>(endpoint);
     },
     staleTime: 5 * 60 * 1000,
   });
@@ -52,12 +36,7 @@ export function useFunnel(month?: string) {
 export function useAvailableMonths() {
   return useQuery<string[]>({
     queryKey: ['availableMonths'],
-    queryFn: async () => {
-      const response = await fetch(`${API_BASE_URL}/metrics/months`);
-     if (!response.ok) throw new Error('Failed to fetch months');
-      const result: any = await response.json();
-      return result.data;
-    },
+    queryFn: () => api.get<string[]>('/metrics/months'),
     staleTime: 10 * 60 * 1000, // 10 minutes
   });
 }
